@@ -49,6 +49,8 @@ def add_balance():
     abonent = User.query.get(abonent_id)
 
     if abonent is not None:
+        if not abonent.account_status:
+            return create_response(403, False, "Account is closed")
         abonent.balance += amount
         db_session.commit()
         return create_response(200, True, f"Successfully changed balance to '{abonent_id}'")
@@ -73,6 +75,8 @@ def substract_balance():
     abonent = User.query.get(abonent_id)
 
     if abonent is not None:
+        if not abonent.account_status:
+            return create_response(403, False, "Account is closed")
         result = abonent.balance - abonent.holds - amount
         if result >= 0:
             abonent.balance = result
@@ -86,7 +90,7 @@ def substract_balance():
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
-    """Статус по счета: остаток по балансу, открыт/закрыт счет"""
+    """Статус по счету: остаток по балансу, открыт/закрыт счет"""
 
     if User.ABONENT_ID not in request.args:
         return create_response(400, False, 'Missing "{}"'.format(User.ABONENT_ID))
@@ -99,7 +103,7 @@ def get_status():
     abonent = User.query.get(abonent_id)
 
     if abonent is not None:
-        return create_response(200, True, abonent.serialize, "Abonent status")
+        return create_response(200, True, abonent.status, "Abonent status")
     return create_response(404, False, f"Abonent '{User.ABONENT_ID}':'{abonent_id}' not found")
 
 
