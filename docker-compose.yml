@@ -1,0 +1,49 @@
+version: "3"
+services:
+
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - env_file.env
+    volumes:
+      - .:/app
+    networks:
+      - web_network
+      - db_network
+    depends_on:
+      - db
+    restart: on-failure:3
+
+  db:
+    image: postgres:10
+    networks:
+      - db_network
+    env_file:
+      - env_file.env
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+    restart: on-failure:3
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - web_network
+    depends_on:
+      - web
+    restart: on-failure:3
+
+networks:
+  web_network:
+    driver: bridge
+  db_network:
+    driver: bridge
+
+volumes:
+  database-data:
+
