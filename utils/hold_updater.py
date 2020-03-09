@@ -1,7 +1,7 @@
-from threading import Timer
 from multiprocessing.dummy import Pool
 from database.database import db_session
 from database.models import User
+from threading import Timer
 
 
 class HoldUpdater:

@@ -1,6 +1,7 @@
 from database.database import Base
 from sqlalchemy import Column, String, Boolean, BigInteger
 from sqlalchemy.dialects.postgresql import UUID
+from uuid import uuid4
 
 
 class User(Base):
@@ -14,7 +15,7 @@ class User(Base):
     HOLDS = "holds"
     ACCOUNT_STATUS = "account_status"
 
-    abonent_id = Column(UUID(as_uuid=True), unique=True, primary_key=True)
+    abonent_id = Column(UUID(as_uuid=True), unique=True, primary_key=True, default=uuid4)
     abonent_name = Column(String(200))
     balance = Column(BigInteger)
     holds = Column(BigInteger)
@@ -44,3 +45,4 @@ class User(Base):
             User.HOLDS: self.holds,
             User.ACCOUNT_STATUS: 'Открыт' if self.is_opened else 'Закрыт'
         }
+

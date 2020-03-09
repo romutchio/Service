@@ -8,7 +8,7 @@ pwd = os.environ['POSTGRES_PASSWORD']
 db = os.environ['POSTGRES_DB']
 host = 'db'
 port = '5432'
-engine = create_engine('postgres://%s:%s@%s:%s/%s' % (user, pwd, host, port, db), isolation_level="REPEATABLE_READ")
+engine = create_engine(f'postgres://{user}:{pwd}@{host}:{port}/{db}', isolation_level="REPEATABLE_READ")
 
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
@@ -16,8 +16,20 @@ db_session = scoped_session(sessionmaker(autocommit=False,
 Base = declarative_base()
 Base.query = db_session.query_property()
 
+
 def init_db():
     import database.models
     Base.metadata.create_all(bind=engine)
 
 
+def init_default_values():
+    from database.models import User
+    test_data = [
+        User('26c940a1-7228-4ea2-a3bc-e6460b172040', 'Петров Иван Сергеевич', 1700, 300, True),
+        User('7badc8f8-65bc-449a-8cde-855234ac63e1', 'Kazitsky Jason', 200, 200, True),
+        User('5597cc3d-c948-48a0-b711-393edf20d9c0', 'Пархоменко Антон Александрович', 10, 300, True),
+        User('867f0924-a917-4711-939b-90b179a96392', 'Петечкин Петр Измаилович', 1000000, 1, False)
+    ]
+    db_session.query(User).delete()
+    db_session.add_all(test_data)
+    db_session.commit()
