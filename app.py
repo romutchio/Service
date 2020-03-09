@@ -2,7 +2,7 @@ from utils.api_helper import is_valid_amount, is_valid_abonent_id, create_respon
 from utils.hold_updater import HoldUpdater
 from flask import Flask, jsonify, request
 from database.database import db_session, init_db, init_default_values
-from database.models import User
+from database.models import Abonent
 
 import logging
 import os
@@ -30,13 +30,13 @@ def ping_service():
 def add_balance():
     """Пополнение баланса"""
 
-    if User.ABONENT_ID not in request.json:
-        return False, create_response(400, False, f"Missing '{User.ABONENT_ID}'")
+    if Abonent.ABONENT_ID not in request.json:
+        return False, create_response(400, False, f"Missing '{Abonent.ABONENT_ID}'")
 
-    abonent_id = request.json[User.ABONENT_ID]
+    abonent_id = request.json[Abonent.ABONENT_ID]
 
     if not is_valid_abonent_id(abonent_id):
-        return create_response(400, False, f"Invalid '{User.ABONENT_ID}':'{abonent_id}', should be uuid v4")
+        return create_response(400, False, f"Invalid '{Abonent.ABONENT_ID}':'{abonent_id}', should be uuid v4")
 
     if 'amount' not in request.json:
         return False, create_response(400, False, "Missing 'amount'")
@@ -47,7 +47,7 @@ def add_balance():
         return create_response(400, False, "Field 'amount' should be int")
 
     amount = int(amount_str)
-    abonent = User.query.get(abonent_id)
+    abonent = Abonent.query.get(abonent_id)
 
     if abonent is not None:
         if not abonent.is_opened:
@@ -56,20 +56,20 @@ def add_balance():
         db_session.commit()
         return create_response(200, True, f"Successfully changed balance to '{abonent_id}'")
 
-    return create_response(404, False, f"Abonent with {User.ABONENT_ID}:{abonent_id} not found")
+    return create_response(404, False, f"Abonent with {Abonent.ABONENT_ID}:{abonent_id} not found")
 
 
 @app.route('/api/substract', methods=['PUT'])
 def substract_balance():
     """Уменьшение баланса"""
 
-    if User.ABONENT_ID not in request.json:
-        return False, create_response(400, False, f"Missing '{User.ABONENT_ID}'")
+    if Abonent.ABONENT_ID not in request.json:
+        return False, create_response(400, False, f"Missing '{Abonent.ABONENT_ID}'")
 
-    abonent_id = request.json[User.ABONENT_ID]
+    abonent_id = request.json[Abonent.ABONENT_ID]
 
     if not is_valid_abonent_id(abonent_id):
-        return create_response(400, False, f"Invalid '{User.ABONENT_ID}':'{abonent_id}', should be uuid v4")
+        return create_response(400, False, f"Invalid '{Abonent.ABONENT_ID}':'{abonent_id}', should be uuid v4")
 
     if 'amount' not in request.json:
         return False, create_response(400, False, "Missing 'amount'")
@@ -80,7 +80,7 @@ def substract_balance():
         return create_response(400, False, "Field 'amount' should be int")
 
     amount = int(amount_str)
-    abonent = User.query.get(abonent_id)
+    abonent = Abonent.query.get(abonent_id)
 
     if abonent is not None:
         if not abonent.is_opened:
@@ -93,68 +93,68 @@ def substract_balance():
         return create_response(403, False, 'Substraction is not available',
                                'Not enough balance for substraction considering holds')
 
-    return create_response(404, False, f"Abonent with '{User.ABONENT_ID}':'{abonent_id}' not found")
+    return create_response(404, False, f"Abonent with '{Abonent.ABONENT_ID}':'{abonent_id}' not found")
 
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
     """Статус по счету: остаток по балансу, открыт/закрыт счет"""
 
-    if User.ABONENT_ID not in request.args:
-        return create_response(400, False, 'Missing "{}"'.format(User.ABONENT_ID))
+    if Abonent.ABONENT_ID not in request.args:
+        return create_response(400, False, 'Missing "{}"'.format(Abonent.ABONENT_ID))
 
-    abonent_id = request.args.get(User.ABONENT_ID)
+    abonent_id = request.args.get(Abonent.ABONENT_ID)
 
     if not is_valid_abonent_id(abonent_id):
-        return create_response(400, False, f"Invalid '{User.ABONENT_ID}':'{abonent_id}', should be uuid v4")
+        return create_response(400, False, f"Invalid '{Abonent.ABONENT_ID}':'{abonent_id}', should be uuid v4")
 
-    abonent = User.query.get(abonent_id)
+    abonent = Abonent.query.get(abonent_id)
 
     if abonent is not None:
         return create_response(200, True, abonent.status, "Abonent status")
-    return create_response(404, False, f"Abonent '{User.ABONENT_ID}':'{abonent_id}' not found")
+    return create_response(404, False, f"Abonent '{Abonent.ABONENT_ID}':'{abonent_id}' not found")
 
 
-@app.route('/api/add_user', methods=['POST'])
-def add_user():
+@app.route('/api/add_abonent', methods=['POST'])
+def add_abonent():
     """Добавить пользователя"""
 
-    if User.ABONENT_ID not in request.json or not is_valid_abonent_id(request.json[User.ABONENT_ID]):
-        return create_response(400, False, f"Error in field '{User.ABONENT_ID}'", '')
+    if Abonent.ABONENT_ID not in request.json or not is_valid_abonent_id(request.json[Abonent.ABONENT_ID]):
+        return create_response(400, False, f"Error in field '{Abonent.ABONENT_ID}'", '')
 
-    if User.ABONENT_NAME not in request.json:
-        return create_response(400, False, f"Error in field '{User.ABONENT_NAME}'", '')
+    if Abonent.ABONENT_NAME not in request.json:
+        return create_response(400, False, f"Error in field '{Abonent.ABONENT_NAME}'", '')
 
-    if User.BALANCE not in request.json or not is_valid_amount(request.json[User.BALANCE]):
-        return create_response(400, False, f"Error in field '{User.BALANCE}'", '')
+    if Abonent.BALANCE not in request.json or not is_valid_amount(request.json[Abonent.BALANCE]):
+        return create_response(400, False, f"Error in field '{Abonent.BALANCE}'", '')
 
-    if User.HOLDS not in request.json or not is_valid_amount(request.json[User.HOLDS]):
-        return create_response(400, False, f"Error in field '{User.HOLDS}'", '')
+    if Abonent.HOLDS not in request.json or not is_valid_amount(request.json[Abonent.HOLDS]):
+        return create_response(400, False, f"Error in field '{Abonent.HOLDS}'", '')
 
-    if User.ACCOUNT_STATUS not in request.json or not isinstance(request.json[User.ACCOUNT_STATUS], bool):
-        return create_response(400, False, f"Error in field '{User.ACCOUNT_STATUS }'", '')
+    if Abonent.ACCOUNT_STATUS not in request.json or not isinstance(request.json[Abonent.ACCOUNT_STATUS], bool):
+        return create_response(400, False, f"Error in field '{Abonent.ACCOUNT_STATUS }'", '')
 
-    account_id = request.json[User.ABONENT_ID]
-    account_name = request.json[User.ABONENT_NAME]
-    balance = request.json[User.BALANCE]
-    holds = request.json[User.HOLDS]
-    account_status = request.json[User.ACCOUNT_STATUS]
+    account_id = request.json[Abonent.ABONENT_ID]
+    account_name = request.json[Abonent.ABONENT_NAME]
+    balance = request.json[Abonent.BALANCE]
+    holds = request.json[Abonent.HOLDS]
+    account_status = request.json[Abonent.ACCOUNT_STATUS]
 
-    user = User(account_id, account_name, balance, holds, account_status)
-    if User.query.get(account_id) is None:
+    abonent = Abonent(account_id, account_name, balance, holds, account_status)
+    if Abonent.query.get(account_id) is None:
         # TODO: add retry system
-        db_session.add(user)
+        db_session.add(abonent)
         db_session.commit()
-        return create_response(200, True, user.serialize, "Successfully added new user")
+        return create_response(200, True, abonent.serialize, "Successfully added new abonent")
     return create_response(400, False, f"Duplicate key: {account_id}")
 
 
-@app.route('/api/get_users', methods=['GET'])
-def get_users():
+@app.route('/api/get_abonents', methods=['GET'])
+def get_abonents():
     """Получить всех пользователей"""
 
-    users = User.query.all()
-    return jsonify([i.serialize for i in users])
+    abonents = Abonent.query.all()
+    return jsonify([i.serialize for i in abonents])
 
 
 if __name__ == '__main__':
